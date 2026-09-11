@@ -27,6 +27,7 @@ TABLE_COUNT = 5
 STARTING_CHIPS = 1000
 SMALL_BLIND = 10
 BIG_BLIND = 20
+
 TURN_SECONDS = 25
 
 RANKS = "23456789TJQKA"
@@ -46,6 +47,7 @@ BOT_NAMES = [
     "David",
     "Chris",
 ]
+
 
 # =========================================================
 # MODELS
@@ -71,11 +73,10 @@ class ChatRequest(BaseModel):
 
 
 # =========================================================
-# TABLE CREATION
+# GAME / TABLE CREATION
 # =========================================================
 
 def new_game():
-
     return {
         "started": False,
         "stage": "waiting",
@@ -94,7 +95,6 @@ def new_game():
 
 
 def new_table(table_id):
-
     return {
         "id": table_id,
         "name": f"Table {table_id}",
@@ -114,7 +114,6 @@ tables = {
 # =========================================================
 
 def get_table(table_id):
-
     table = tables.get(int(table_id))
 
     if not table:
@@ -126,12 +125,7 @@ def get_table(table_id):
     return table
 
 
-def get_players(table):
-    return table["players"]
-
-
 def seated_players(table):
-
     return sorted(
         [
             p
@@ -143,7 +137,6 @@ def seated_players(table):
 
 
 def real_players(table):
-
     return [
         p
         for p in seated_players(table)
@@ -152,7 +145,6 @@ def real_players(table):
 
 
 def bot_players(table):
-
     return [
         p
         for p in seated_players(table)
@@ -161,19 +153,16 @@ def bot_players(table):
 
 
 def get_player(table, user_id):
-
     return table["players"].get(str(user_id))
 
 
 def available_seat(table):
-
     used = {
         p["seat"]
         for p in seated_players(table)
     }
 
     for seat in range(MAX_SEATS):
-
         if seat not in used:
             return seat
 
@@ -181,7 +170,6 @@ def available_seat(table):
 
 
 def next_seat(table, seat):
-
     occupied = {
         p["seat"]
         for p in seated_players(table)
@@ -191,7 +179,6 @@ def next_seat(table, seat):
         return None
 
     for i in range(1, MAX_SEATS + 1):
-
         candidate = (seat + i) % MAX_SEATS
 
         if candidate in occupied:
@@ -201,7 +188,6 @@ def next_seat(table, seat):
 
 
 def player_can_act(player):
-
     if not player:
         return False
 
@@ -222,7 +208,6 @@ def player_can_act(player):
 # =========================================================
 
 def make_deck():
-
     return [
         r + s
         for r in RANKS
@@ -231,7 +216,6 @@ def make_deck():
 
 
 def card_text(card):
-
     if not card:
         return card
 
@@ -242,7 +226,6 @@ def card_text(card):
 
 
 def cards_text(cards):
-
     return [
         card_text(card)
         for card in cards
@@ -250,7 +233,6 @@ def cards_text(cards):
 
 
 def rank_value(card):
-
     return RANKS.index(card[0]) + 2
 
 
@@ -259,7 +241,6 @@ def rank_value(card):
 # =========================================================
 
 def calculate_pot(table):
-
     return sum(
         p.get("total_bet", 0)
         for p in seated_players(table)
@@ -267,12 +248,11 @@ def calculate_pot(table):
 
 
 def update_pot(table):
-
     table["game"]["pot"] = calculate_pot(table)
 
 
 # =========================================================
-# PUBLIC STATE
+# PUBLIC GAME STATE
 # =========================================================
 
 def public_game_state(table, user_id=None):
@@ -284,7 +264,6 @@ def public_game_state(table, user_id=None):
     for p in seated_players(table):
 
         public_players.append({
-
             "user_id": p["user_id"],
             "name": p["name"],
             "chips": p["chips"],
@@ -293,14 +272,12 @@ def public_game_state(table, user_id=None):
             "total_bet": p["total_bet"],
             "folded": p["folded"],
             "all_in": p["all_in"],
-            "is_bot": p["is_bot"],
-
-            "is_turn":
-                p["user_id"] ==
-                game["current_player"],
-
-            "cards_count":
-                len(p["cards"]),
+            "is_bot": bool(p.get("is_bot", False)),
+            "is_turn": (
+                p["user_id"]
+                == game["current_player"]
+            ),
+            "cards_count": len(p["cards"]),
         })
 
     my_cards = []
@@ -317,7 +294,7 @@ def public_game_state(table, user_id=None):
                 player["cards"]
             )
 
-    remaining = 0
+    turn_remaining = 0
 
     if (
         game["started"]
@@ -330,40 +307,51 @@ def public_game_state(table, user_id=None):
             - game["turn_started_at"]
         )
 
-        remaining = max(
+        turn_remaining = max(
             0,
-            int(
-                TURN_SECONDS -
-                elapsed
-            )
+            TURN_SECONDS - int(elapsed)
         )
 
-    return {
+    current_player_name = None
+    current_player_is_bot = False
 
+    if game["current_player"]:
+
+        current = table["players"].get(
+            game["current_player"]
+        )
+
+        if current:
+
+            current_player_name = current["name"]
+
+            current_player_is_bot = bool(
+                current.get("is_bot", False)
+            )
+
+    return {
         "success": True,
 
-        "table_id":
-            table["id"],
+        "table_id": table["id"],
+        "table_name": table["name"],
 
-        "table_name":
-            table["name"],
+        "started": game["started"],
+        "stage": game["stage"],
 
-        "started":
-            game["started"],
+        "community_cards": cards_text(
+            game["community_cards"]
+        ),
 
-        "stage":
-            game["stage"],
-
-        "community_cards":
-            cards_text(
-                game["community_cards"]
-            ),
-
-        "pot":
-            game["pot"],
+        "pot": game["pot"],
 
         "current_player":
             game["current_player"],
+
+        "current_player_name":
+            current_player_name,
+
+        "current_player_is_bot":
+            current_player_is_bot,
 
         "current_bet":
             game["current_bet"],
@@ -384,7 +372,7 @@ def public_game_state(table, user_id=None):
             TURN_SECONDS,
 
         "turn_remaining":
-            remaining,
+            turn_remaining,
 
         "players":
             public_players,
@@ -411,45 +399,24 @@ def public_tables():
         game = table["game"]
 
         if game["started"]:
-
             status = "PLAYING"
 
         elif players_count >= MAX_SEATS:
-
             status = "FULL"
 
         else:
-
             status = "OPEN"
 
         result.append({
-
-            "id":
-                table["id"],
-
-            "name":
-                table["name"],
-
-            "players":
-                players_count,
-
-            "max_players":
-                MAX_SEATS,
-
-            "status":
-                status,
-
-            "pot":
-                game["pot"],
-
-            "stage":
-                game["stage"],
-
-            "small_blind":
-                SMALL_BLIND,
-
-            "big_blind":
-                BIG_BLIND,
+            "id": table["id"],
+            "name": table["name"],
+            "players": players_count,
+            "max_players": MAX_SEATS,
+            "status": status,
+            "pot": game["pot"],
+            "stage": game["stage"],
+            "small_blind": SMALL_BLIND,
+            "big_blind": BIG_BLIND,
         })
 
     return result
@@ -509,7 +476,7 @@ def post_blind(player, amount):
 
 
 # =========================================================
-# TURN
+# TURN HELPERS
 # =========================================================
 
 def actionable_players(table):
@@ -540,11 +507,9 @@ def next_actionable_from_seat(
         for p in occupied:
 
             if (
-                p["seat"] ==
-                candidate_seat
+                p["seat"] == candidate_seat
                 and player_can_act(p)
             ):
-
                 return p
 
     return None
@@ -555,10 +520,8 @@ def all_active_have_equal_bet(table):
     game = table["game"]
 
     active = [
-
         p
         for p in seated_players(table)
-
         if (
             not p["folded"]
             and not p["all_in"]
@@ -569,8 +532,7 @@ def all_active_have_equal_bet(table):
         return True
 
     return all(
-        p["bet"] ==
-        game["current_bet"]
+        p["bet"] == game["current_bet"]
         for p in active
     )
 
@@ -578,10 +540,8 @@ def all_active_have_equal_bet(table):
 def only_one_active_player(table):
 
     active = [
-
         p
         for p in seated_players(table)
-
         if not p["folded"]
     ]
 
@@ -610,7 +570,6 @@ def evaluate_five(cards):
     counts = {}
 
     for v in values:
-
         counts[v] = (
             counts.get(v, 0)
             + 1
@@ -634,11 +593,7 @@ def evaluate_five(cards):
             i:i + 5
         ]
 
-        if (
-            seq[0] -
-            seq[4]
-            == 4
-        ):
+        if seq[0] - seq[4] == 4:
 
             straight_high = seq[0]
             break
@@ -808,15 +763,12 @@ def best_hand(cards):
         5
     ):
 
-        score = evaluate_five(
-            combo
-        )
+        score = evaluate_five(combo)
 
         if (
             best is None
             or score > best
         ):
-
             best = score
 
     return best
@@ -831,10 +783,8 @@ def finish_hand(table):
     game = table["game"]
 
     active = [
-
         p
         for p in seated_players(table)
-
         if not p["folded"]
     ]
 
@@ -848,11 +798,11 @@ def finish_hand(table):
 
         return
 
+    prize = calculate_pot(table)
+
     if len(active) == 1:
 
         winner = active[0]
-
-        prize = calculate_pot(table)
 
         winner["chips"] += prize
 
@@ -889,23 +839,25 @@ def finish_hand(table):
         )
 
         winners = [
-
             p
             for score, p in scored
-
-            if score ==
-            best_score
+            if score == best_score
         ]
 
-        prize = calculate_pot(table)
-
         share = (
-            prize //
-            len(winners)
+            prize // len(winners)
         )
 
-        for winner in winners:
+        remainder = (
+            prize % len(winners)
+        )
+
+        for index, winner in enumerate(winners):
+
             winner["chips"] += share
+
+            if index == 0:
+                winner["chips"] += remainder
 
         names = ", ".join(
             w["name"]
@@ -918,7 +870,7 @@ def finish_hand(table):
 
         game["message"] = (
             f"{names} "
-            f"wins {share} chips"
+            f"wins {prize} chips"
         )
 
     update_pot(table)
@@ -946,11 +898,9 @@ def advance_stage(table):
     if game["stage"] == "preflop":
 
         game["community_cards"] = [
-
             deal_card(table),
             deal_card(table),
             deal_card(table),
-
         ]
 
         game["stage"] = "flop"
@@ -978,11 +928,9 @@ def advance_stage(table):
 
     dealer = game["dealer_index"]
 
-    next_player = (
-        next_actionable_from_seat(
-            table,
-            dealer
-        )
+    next_player = next_actionable_from_seat(
+        table,
+        dealer
     )
 
     if next_player:
@@ -991,13 +939,13 @@ def advance_stage(table):
             next_player["user_id"]
         )
 
-        game["turn_started_at"] = (
-            time.time()
-        )
+        game["turn_started_at"] = time.time()
 
     else:
 
         finish_hand(table)
+
+    update_pot(table)
 
 
 # =========================================================
@@ -1032,10 +980,7 @@ def perform_action(
             detail="Game is not started"
         )
 
-    if (
-        game["current_player"]
-        != user_id
-    ):
+    if game["current_player"] != user_id:
 
         raise HTTPException(
             status_code=400,
@@ -1070,10 +1015,7 @@ def perform_action(
 
     elif action == "check":
 
-        if (
-            player["bet"]
-            != game["current_bet"]
-        ):
+        if player["bet"] != game["current_bet"]:
 
             raise HTTPException(
                 status_code=400,
@@ -1091,17 +1033,10 @@ def perform_action(
 
         needed = (
             game["current_bet"]
-            -
-            player["bet"]
+            - player["bet"]
         )
 
-        if needed <= 0:
-
-            game["acted_players"].add(
-                user_id
-            )
-
-        else:
+        if needed > 0:
 
             actual = min(
                 needed,
@@ -1115,9 +1050,9 @@ def perform_action(
             if player["chips"] == 0:
                 player["all_in"] = True
 
-            game["acted_players"].add(
-                user_id
-            )
+        game["acted_players"].add(
+            user_id
+        )
 
     elif action == "raise":
 
@@ -1128,15 +1063,14 @@ def perform_action(
             raise HTTPException(
                 status_code=400,
                 detail=(
-                    "Raise must be "
-                    "greater than current bet"
+                    "Raise must be greater "
+                    "than current bet"
                 )
             )
 
         additional = (
             requested
-            -
-            player["bet"]
+            - player["bet"]
         )
 
         additional = min(
@@ -1155,9 +1089,7 @@ def perform_action(
         player["bet"] += additional
         player["total_bet"] += additional
 
-        game["current_bet"] = (
-            player["bet"]
-        )
+        game["current_bet"] = player["bet"]
 
         if player["chips"] == 0:
             player["all_in"] = True
@@ -1166,38 +1098,28 @@ def perform_action(
             user_id
         }
 
-    elif action in (
-        "allin",
-        "all-in"
-    ):
+    elif action in ("allin", "all-in"):
 
         additional = player["chips"]
 
-        if additional <= 0:
+        player["chips"] = 0
+        player["bet"] += additional
+        player["total_bet"] += additional
+        player["all_in"] = True
 
-            player["all_in"] = True
+        if player["bet"] > game["current_bet"]:
+
+            game["current_bet"] = player["bet"]
+
+            game["acted_players"] = {
+                user_id
+            }
 
         else:
 
-            player["chips"] = 0
-            player["bet"] += additional
-            player["total_bet"] += additional
-
-            if (
-                player["bet"]
-                >
-                game["current_bet"]
-            ):
-
-                game["current_bet"] = (
-                    player["bet"]
-                )
-
-            player["all_in"] = True
-
-        game["acted_players"].add(
-            user_id
-        )
+            game["acted_players"].add(
+                user_id
+            )
 
     else:
 
@@ -1218,11 +1140,9 @@ def perform_action(
         advance_stage(table)
         return
 
-    next_player = (
-        next_actionable_from_seat(
-            table,
-            player["seat"]
-        )
+    next_player = next_actionable_from_seat(
+        table,
+        player["seat"]
     )
 
     if next_player:
@@ -1231,9 +1151,7 @@ def perform_action(
             next_player["user_id"]
         )
 
-        game["turn_started_at"] = (
-            time.time()
-        )
+        game["turn_started_at"] = time.time()
 
     else:
 
@@ -1257,94 +1175,59 @@ def create_bot(table):
     }
 
     available_names = [
-
         name
         for name in BOT_NAMES
-
         if name not in existing_names
     ]
 
     if available_names:
-
         name = random.choice(
             available_names
         )
-
     else:
-
-        name = (
-            f"Bot {seat + 1}"
-        )
+        name = f"Bot {seat + 1}"
 
     bot_id = (
         f"bot_{table['id']}_"
         f"{seat}_"
-        f"{random.randint(1000,9999)}"
+        f"{random.randint(1000, 9999)}"
     )
 
     table["players"][bot_id] = {
 
-        "user_id":
-            bot_id,
-
-        "name":
-            name,
-
-        "chips":
-            STARTING_CHIPS,
-
-        "seat":
-            seat,
-
-        "cards":
-            [],
-
-        "folded":
-            False,
-
-        "all_in":
-            False,
-
-        "bet":
-            0,
-
-        "total_bet":
-            0,
-
-        "is_bot":
-            True,
+        "user_id": bot_id,
+        "name": name,
+        "chips": STARTING_CHIPS,
+        "seat": seat,
+        "cards": [],
+        "folded": False,
+        "all_in": False,
+        "bet": 0,
+        "total_bet": 0,
+        "is_bot": True,
     }
 
     return table["players"][bot_id]
 
 
-def add_bots_until(
-    table,
-    count
-):
+def add_bots_until(table, count=MAX_SEATS):
 
-    while len(
-        seated_players(table)
-    ) < count:
+    while len(seated_players(table)) < count:
 
-        if create_bot(table) is None:
+        bot = create_bot(table)
+
+        if bot is None:
             break
 
 
-def bot_decision(
-    table,
-    bot
-):
+def bot_decision(table, bot):
 
     game = table["game"]
 
     if not game["started"]:
         return
 
-    if (
-        game["current_player"]
-        != bot["user_id"]
-    ):
+    if game["current_player"] != bot["user_id"]:
         return
 
     if not player_can_act(bot):
@@ -1352,57 +1235,51 @@ def bot_decision(
 
     to_call = (
         game["current_bet"]
-        -
-        bot["bet"]
+        - bot["bet"]
     )
 
     strength = random.random()
 
-    if strength < 0.15:
+    if strength < 0.12:
 
         if to_call == 0:
-
             action = "check"
-            amount = 0
-
         else:
-
             action = "fold"
-            amount = 0
 
-    elif strength < 0.75:
+        amount = 0
+
+    elif strength < 0.72:
 
         if to_call == 0:
-
             action = "check"
-            amount = 0
-
         else:
-
             action = "call"
-            amount = 0
+
+        amount = 0
 
     elif strength < 0.93:
 
         raise_to = max(
-
-            game["current_bet"]
-            + BIG_BLIND,
-
-            bot["bet"]
-            + BIG_BLIND
+            game["current_bet"] + BIG_BLIND,
+            bot["bet"] + BIG_BLIND
         )
 
-        action = "raise"
+        max_bet = (
+            bot["bet"]
+            + bot["chips"]
+        )
 
         amount = min(
-
             raise_to,
-
-            bot["bet"]
-            +
-            bot["chips"]
+            max_bet
         )
+
+        if amount <= game["current_bet"]:
+            action = "call"
+            amount = 0
+        else:
+            action = "raise"
 
     else:
 
@@ -1440,7 +1317,7 @@ async def run_bot_turn(table):
     if not player:
         return
 
-    if not player.get("is_bot"):
+    if not player.get("is_bot", False):
         return
 
     try:
@@ -1455,17 +1332,14 @@ async def run_bot_turn(table):
         try:
 
             if (
-                table["game"]
-                ["current_player"]
-                ==
-                player["user_id"]
+                table["game"]["current_player"]
+                == player["user_id"]
             ):
 
                 if (
-                    table["game"]
-                    ["current_bet"]
-                    ==
                     player["bet"]
+                    ==
+                    table["game"]["current_bet"]
                 ):
 
                     perform_action(
@@ -1485,21 +1359,16 @@ async def run_bot_turn(table):
         except Exception:
             pass
 
-    await schedule_bot_if_needed(
-        table
-    )
+    await schedule_bot_if_needed(table)
 
 
-async def schedule_bot_if_needed(
-    table
-):
+async def schedule_bot_if_needed(table):
 
     if not table["game"]["started"]:
         return
 
     current_id = (
-        table["game"]
-        ["current_player"]
+        table["game"]["current_player"]
     )
 
     if not current_id:
@@ -1511,7 +1380,7 @@ async def schedule_bot_if_needed(
 
     if (
         player
-        and player.get("is_bot")
+        and player.get("is_bot", False)
     ):
 
         asyncio.create_task(
@@ -1520,7 +1389,7 @@ async def schedule_bot_if_needed(
 
 
 # =========================================================
-# START HAND
+# START NEW HAND
 # =========================================================
 
 def start_new_hand(table):
@@ -1554,6 +1423,7 @@ def start_new_hand(table):
     game["acted_players"] = set()
     game["winner"] = None
     game["message"] = ""
+    game["turn_started_at"] = None
     game["hand_number"] += 1
 
     for p in seated:
@@ -1564,15 +1434,17 @@ def start_new_hand(table):
         p["total_bet"] = 0
         p["cards"] = []
 
+        # If a player ran out of chips,
+        # give a fresh stack for the next hand.
+        if p["chips"] <= 0:
+            p["chips"] = STARTING_CHIPS
+
     occupied_seats = [
         p["seat"]
         for p in seated
     ]
 
-    if (
-        game["dealer_index"]
-        not in occupied_seats
-    ):
+    if game["dealer_index"] not in occupied_seats:
 
         game["dealer_index"] = (
             occupied_seats[0]
@@ -1633,9 +1505,7 @@ def start_new_hand(table):
         BIG_BLIND
     )
 
-    game["current_bet"] = (
-        BIG_BLIND
-    )
+    game["current_bet"] = BIG_BLIND
 
     deal_hole_cards(table)
 
@@ -1645,11 +1515,9 @@ def start_new_hand(table):
 
     else:
 
-        first = (
-            next_actionable_from_seat(
-                table,
-                bb_player["seat"]
-            )
+        first = next_actionable_from_seat(
+            table,
+            bb_player["seat"]
         )
 
     if first:
@@ -1658,9 +1526,7 @@ def start_new_hand(table):
             first["user_id"]
         )
 
-        game["turn_started_at"] = (
-            time.time()
-        )
+        game["turn_started_at"] = time.time()
 
     else:
 
@@ -1678,12 +1544,11 @@ def root():
 
     return {
         "status": "online",
-        "message":
-            "Poker backend is running",
-        "version":
-            "3.0-multi-table",
-        "tables":
-            TABLE_COUNT,
+        "message": "Poker backend is running",
+        "version": "4.0",
+        "tables": TABLE_COUNT,
+        "max_seats": MAX_SEATS,
+        "turn_seconds": TURN_SECONDS,
     }
 
 
@@ -1691,7 +1556,8 @@ def root():
 def health():
 
     return {
-        "status": "ok"
+        "status": "ok",
+        "version": "4.0"
     }
 
 
@@ -1700,64 +1566,44 @@ def get_tables():
 
     return {
         "success": True,
-        "tables":
-            public_tables()
+        "tables": public_tables()
     }
 
 
 @app.get("/players")
-def get_players(
-    table_id: int = 1
-):
+def get_players(table_id: int = 1):
 
-    table = get_table(
-        table_id
-    )
+    table = get_table(table_id)
 
     return {
         "success": True,
+
+        "table_id": table_id,
+
         "players": [
 
             {
-                "user_id":
-                    p["user_id"],
-
-                "name":
-                    p["name"],
-
-                "chips":
-                    p["chips"],
-
-                "seat":
-                    p["seat"],
-
-                "bet":
-                    p["bet"],
-
-                "total_bet":
-                    p["total_bet"],
-
-                "folded":
-                    p["folded"],
-
-                "all_in":
-                    p["all_in"],
-
-                "is_bot":
-                    p["is_bot"],
-
-                "is_turn":
+                "user_id": p["user_id"],
+                "name": p["name"],
+                "chips": p["chips"],
+                "seat": p["seat"],
+                "bet": p["bet"],
+                "total_bet": p["total_bet"],
+                "folded": p["folded"],
+                "all_in": p["all_in"],
+                "is_bot": bool(
+                    p.get("is_bot", False)
+                ),
+                "is_turn": (
                     p["user_id"]
                     ==
                     table["game"]
-                    ["current_player"],
-
-                "cards_count":
-                    len(p["cards"]),
+                    ["current_player"]
+                ),
+                "cards_count": len(p["cards"]),
             }
 
-            for p
-            in seated_players(table)
+            for p in seated_players(table)
         ],
     }
 
@@ -1768,9 +1614,7 @@ def get_game(
     user_id: Optional[str] = None
 ):
 
-    table = get_table(
-        table_id
-    )
+    table = get_table(table_id)
 
     return public_game_state(
         table,
@@ -1784,9 +1628,7 @@ def my_cards(
     table_id: int = 1
 ):
 
-    table = get_table(
-        table_id
-    )
+    table = get_table(table_id)
 
     player = get_player(
         table,
@@ -1801,18 +1643,17 @@ def my_cards(
         )
 
     return {
-
         "success": True,
-
-        "user_id":
-            user_id,
-
-        "cards":
-            cards_text(
-                player["cards"]
-            ),
+        "user_id": user_id,
+        "cards": cards_text(
+            player["cards"]
+        ),
     }
 
+
+# =========================================================
+# JOIN
+# =========================================================
 
 @app.post("/join")
 async def join(
@@ -1827,7 +1668,7 @@ async def join(
         request.table_id
     )
 
-    # Remove player from other tables
+    # Remove user from other tables
     for other in tables.values():
 
         if other["id"] == table["id"]:
@@ -1856,23 +1697,27 @@ async def join(
 
     if existing:
 
+        # IMPORTANT:
+        # Make sure bots exist even if
+        # the user reloads the Mini App.
+        if not table["game"]["started"]:
+
+            add_bots_until(
+                table,
+                MAX_SEATS
+            )
+
         return {
-
             "success": True,
-
-            "message":
-                "Already joined",
-
-            "table_id":
-                table["id"],
-
-            "player":
-                existing,
+            "message": "Already joined",
+            "table_id": table["id"],
+            "player": existing,
+            "players": len(
+                seated_players(table)
+            ),
         }
 
-    seat = available_seat(
-        table
-    )
+    seat = available_seat(table)
 
     if seat is None:
 
@@ -1883,8 +1728,7 @@ async def join(
 
     table["players"][user_id] = {
 
-        "user_id":
-            user_id,
+        "user_id": user_id,
 
         "name":
             request.name or "Player",
@@ -1914,6 +1758,16 @@ async def join(
             False,
     }
 
+    # =====================================================
+    # IMPORTANT FIX:
+    # Automatically fill the table with bots.
+    # =====================================================
+
+    add_bots_until(
+        table,
+        MAX_SEATS
+    )
+
     return {
 
         "success": True,
@@ -1926,8 +1780,18 @@ async def join(
 
         "player":
             table["players"][user_id],
+
+        "players":
+            len(seated_players(table)),
+
+        "bots":
+            len(bot_players(table)),
     }
 
+
+# =========================================================
+# LEAVE
+# =========================================================
 
 @app.post("/leave")
 async def leave(
@@ -1935,9 +1799,7 @@ async def leave(
     table_id: int = 1
 ):
 
-    table = get_table(
-        table_id
-    )
+    table = get_table(table_id)
 
     if table["game"]["started"]:
 
@@ -1956,45 +1818,44 @@ async def leave(
 
     return {
         "success": True,
-        "message":
-            "Left table"
+        "message": "Left table"
     }
 
+
+# =========================================================
+# START
+# =========================================================
 
 @app.post("/start")
 async def start_game(
     table_id: int = 1
 ):
 
-    table = get_table(
-        table_id
-    )
+    table = get_table(table_id)
 
     if table["game"]["started"]:
 
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                "Game already started"
-            )
+        return public_game_state(
+            table
         )
 
-    if len(
-        seated_players(table)
-    ) == 1:
+    # Always make sure the table has
+    # a full set of players.
+    if len(seated_players(table)) < MAX_SEATS:
 
         add_bots_until(
             table,
             MAX_SEATS
         )
 
-    elif len(
-        seated_players(table)
-    ) < 2:
+    if len(seated_players(table)) < 2:
 
-        add_bots_until(
-            table,
-            2
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "At least 2 players "
+                "are required"
+            )
         )
 
     start_new_hand(table)
@@ -2007,6 +1868,10 @@ async def start_game(
         table
     )
 
+
+# =========================================================
+# ACTION
+# =========================================================
 
 @app.post("/action")
 async def action(
@@ -2034,6 +1899,10 @@ async def action(
     )
 
 
+# =========================================================
+# CHAT
+# =========================================================
+
 @app.post("/chat")
 async def chat(
     request: ChatRequest
@@ -2055,10 +1924,7 @@ async def chat(
             detail="Player not found"
         )
 
-    message = (
-        request.message
-        .strip()
-    )
+    message = request.message.strip()
 
     if not message:
 
@@ -2068,47 +1934,43 @@ async def chat(
         )
 
     return {
-
         "success": True,
-
-        "user_id":
-            request.user_id,
-
-        "name":
-            player["name"],
-
-        "message":
-            message,
+        "user_id": request.user_id,
+        "name": player["name"],
+        "message": message,
     }
 
+
+# =========================================================
+# RESET
+# =========================================================
 
 @app.post("/reset")
 async def reset(
     table_id: int = 1
 ):
 
-    table = get_table(
-        table_id
-    )
+    table = get_table(table_id)
 
     table["players"].clear()
     table["game"] = new_game()
 
     return {
         "success": True,
-        "message":
-            "Table reset"
+        "message": "Table reset"
     }
 
+
+# =========================================================
+# ADD BOTS
+# =========================================================
 
 @app.post("/add-bots")
 async def add_bots(
     table_id: int = 1
 ):
 
-    table = get_table(
-        table_id
-    )
+    table = get_table(table_id)
 
     add_bots_until(
         table,
@@ -2135,17 +1997,21 @@ async def add_bots(
                     p["seat"],
 
                 "is_bot":
-                    p["is_bot"],
+                    bool(
+                        p.get(
+                            "is_bot",
+                            False
+                        )
+                    ),
             }
 
-            for p
-            in seated_players(table)
+            for p in seated_players(table)
         ],
     }
 
 
 # =========================================================
-# GLOBAL TIMER
+# TIMER
 # =========================================================
 
 async def timer_loop():
@@ -2175,7 +2041,8 @@ async def timer_loop():
             if not player:
                 continue
 
-            if player.get("is_bot"):
+            # Bots are handled separately.
+            if player.get("is_bot", False):
                 continue
 
             started_at = (
@@ -2192,14 +2059,15 @@ async def timer_loop():
 
             elapsed = (
                 time.time()
-                -
-                started_at
+                - started_at
             )
 
             if elapsed >= TURN_SECONDS:
 
                 try:
 
+                    # If player can check,
+                    # automatically check.
                     if (
                         player["bet"]
                         ==
@@ -2212,6 +2080,7 @@ async def timer_loop():
                             "check"
                         )
 
+                    # Otherwise fold.
                     else:
 
                         perform_action(
@@ -2227,6 +2096,10 @@ async def timer_loop():
                 except Exception:
                     pass
 
+
+# =========================================================
+# STARTUP
+# =========================================================
 
 @app.on_event("startup")
 async def startup_event():
