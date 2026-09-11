@@ -1,2512 +1,1957 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
 <meta name="viewport"
-content="width=device-width,
-initial-scale=1.0,
-maximum-scale=1.0,
-user-scalable=no">
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <title>Telegram Poker</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-
-*{
-box-sizing:border-box;
--webkit-tap-highlight-color:transparent;
-}
-
-body{
-
-margin:0;
-
-background:
-radial-gradient(
-circle at top,
-#263d30 0%,
-#101611 50%,
-#060806 100%
-);
-
-color:white;
-
-font-family:
-Arial,
-Helvetica,
-sans-serif;
-
-min-height:100vh;
-
-overflow:hidden;
-}
-
-button{
-
-border:0;
-color:white;
-font-weight:800;
-cursor:pointer;
-}
-
-button:active{
-transform:scale(.96);
-}
-
-button:disabled{
-opacity:.3;
-}
-
-/* =====================================================
-HEADER
-===================================================== */
-
-.header{
-
-height:58px;
-
-display:flex;
-
-align-items:center;
-
-justify-content:space-between;
-
-padding:
-0 14px;
-
-background:
-rgba(0,0,0,.4);
-
-border-bottom:
-1px solid
-rgba(255,255,255,.08);
-
-}
-
-.logo{
-
-font-size:19px;
-font-weight:900;
-
-}
-
-.status{
-
-font-size:11px;
-color:#7cff91;
-
-}
-
-/* =====================================================
-LOBBY
-===================================================== */
-
-#lobby{
-
-position:fixed;
-
-inset:0;
-
-z-index:100;
-
-background:
-
-radial-gradient(
-circle at top,
-#193b28,
-#080c09 70%
-);
-
-padding:
-25px 15px;
-
-overflow-y:auto;
-
-}
-
-.lobby-title{
-
-font-size:30px;
-font-weight:900;
-text-align:center;
-
-margin-top:20px;
-
-}
-
-.lobby-sub{
-
-text-align:center;
-
-color:#aeb9b1;
-
-font-size:12px;
-
-margin-top:6px;
-margin-bottom:25px;
-
-}
-
-.tables{
-
-display:flex;
-
-flex-direction:column;
-
-gap:12px;
-
-max-width:520px;
-
-margin:auto;
-
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.table-card{
-
-background:
-linear-gradient(
-145deg,
-rgba(35,52,42,.95),
-rgba(12,20,15,.95)
-);
-
-border:
-1px solid
-rgba(255,255,255,.1);
-
-border-radius:18px;
-
-padding:17px;
-
-box-shadow:
-0 10px 25px
-rgba(0,0,0,.35);
-
-}
-
-.table-top{
-
-display:flex;
-
-justify-content:space-between;
-
-align-items:center;
-
-}
-
-.table-name{
-
-font-size:18px;
-font-weight:900;
-
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    overflow: hidden;
+    background: #060907;
+    color: #fff;
+    font-family: Arial, Helvetica, sans-serif;
 }
-
-.badge{
 
-font-size:10px;
-
-padding:
-5px 9px;
-
-border-radius:20px;
-
-font-weight:900;
+button {
+    font-family: inherit;
 }
 
-.badge.open{
-
-background:#125c36;
-color:#7dffad;
-
+#app {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 50% 35%, #173b29 0%, #0b1710 48%, #050705 100%);
 }
-
-.badge.playing{
 
-background:#665014;
-color:#ffe26a;
+/* ================= HEADER ================= */
 
+.header {
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    background: rgba(0,0,0,.42);
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    position: relative;
+    z-index: 50;
+    backdrop-filter: blur(12px);
 }
 
-.badge.full{
-
-background:#63272c;
-color:#ff969d;
-
+.logo {
+    font-size: 19px;
+    font-weight: 900;
+    letter-spacing: .2px;
 }
-
-.table-info{
-
-display:grid;
-
-grid-template-columns:
-repeat(3,1fr);
 
-gap:8px;
-
-margin-top:14px;
-
+.logo span {
+    background: linear-gradient(135deg,#fff,#7eeaa4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
-
-.info-box{
-
-background:
-rgba(0,0,0,.25);
-
-border-radius:10px;
-
-padding:9px;
 
-text-align:center;
-
+.status-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
-
-.info-title{
 
-font-size:9px;
-color:#89958e;
-
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #ff5858;
+    box-shadow: 0 0 8px rgba(255,88,88,.7);
 }
-
-.info-value{
-
-font-size:13px;
-font-weight:900;
 
-margin-top:3px;
-
+.status-dot.online {
+    background: #55ed82;
+    box-shadow: 0 0 9px rgba(85,237,130,.8);
 }
-
-.join-table{
-
-width:100%;
-
-margin-top:13px;
-
-padding:12px;
-
-border-radius:11px;
 
-background:
-linear-gradient(
-135deg,
-#19a860,
-#08733d
-);
-
-font-size:14px;
-
-box-shadow:
-0 5px 16px
-rgba(0,0,0,.25);
-
+.status {
+    font-size: 11px;
+    color: #9ca9a1;
 }
 
-.join-table:disabled{
+/* ================= TABLE AREA ================= */
 
-background:#333;
-
+.table-area {
+    height: calc(100vh - 205px);
+    min-height: 410px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-
-/* =====================================================
-GAME
-===================================================== */
 
-#gameScreen{
+/* ================= TABLE ================= */
 
-display:none;
-
-height:100vh;
-
+.table {
+    width: 91%;
+    max-width: 650px;
+    aspect-ratio: 1.62;
+    position: relative;
+
+    background:
+        radial-gradient(circle at 50% 45%, #199456 0%, #0c7040 48%, #064528 100%);
+
+    border: 13px solid #4a2b19;
+    border-radius: 50%;
+
+    box-shadow:
+        inset 0 0 0 2px rgba(255,255,255,.08),
+        inset 0 0 45px rgba(0,0,0,.48),
+        0 20px 45px rgba(0,0,0,.65),
+        0 0 0 5px rgba(255,255,255,.025);
+
+    overflow: visible;
+}
+
+.table::before {
+    content: "";
+    position: absolute;
+    inset: 9px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.table::after {
+    content: "";
+    position: absolute;
+    width: 45%;
+    height: 18%;
+    left: 27.5%;
+    top: 41%;
+    border-radius: 50%;
+    background: rgba(0,0,0,.08);
+    filter: blur(12px);
+    pointer-events: none;
+}
+
+/* ================= CENTER ================= */
+
+.center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+    text-align: center;
+    z-index: 5;
+    width: 58%;
+}
+
+.pot-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(255,255,255,.62);
+}
+
+.pot {
+    margin-top: 2px;
+    font-size: 21px;
+    font-weight: 900;
+    text-shadow: 0 2px 5px rgba(0,0,0,.35);
+}
+
+.stage {
+    display: inline-block;
+    margin-top: 5px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    background: rgba(0,0,0,.22);
+    color: rgba(255,255,255,.75);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.community {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    min-height: 48px;
+}
+
+/* ================= CARDS ================= */
+
+.card {
+    width: 40px;
+    height: 56px;
+    border-radius: 6px;
+    background: linear-gradient(145deg,#fff,#e8e8e8);
+    color: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    font-weight: 900;
+    box-shadow:
+        0 4px 9px rgba(0,0,0,.4),
+        inset 0 0 0 1px rgba(0,0,0,.08);
+    animation: cardIn .25s ease-out;
+}
+
+.card.red {
+    color: #d91e35;
 }
-
-.table-area{
-
-height:
-calc(100vh - 210px);
-
-min-height:430px;
-
-position:relative;
 
-display:flex;
-
-align-items:center;
-
-justify-content:center;
-
+.card.back {
+    background:
+        linear-gradient(135deg,#122755,#2857a5);
+    border: 2px solid rgba(255,255,255,.9);
+    color: #fff;
+    font-size: 17px;
+    box-shadow:
+        0 3px 8px rgba(0,0,0,.45),
+        inset 0 0 0 2px rgba(255,255,255,.08);
 }
-
-.table{
-
-width:92%;
-
-max-width:650px;
-
-aspect-ratio:1.65;
-
-background:
-
-radial-gradient(
-circle,
-#1a9555,
-#09653a 60%,
-#064126
-);
-
-border:
-14px solid #57351f;
-
-border-radius:50%;
-
-box-shadow:
 
-inset 0 0 40px
-rgba(0,0,0,.55),
-
-0 20px 50px
-rgba(0,0,0,.55);
-
-position:relative;
-
+@keyframes cardIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(.85);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ================= PLAYERS ================= */
+
+.player {
+    position: absolute;
+    width: 108px;
+    text-align: center;
+    transform: translate(-50%,-50%);
+    z-index: 20;
+}
+
+.player-box {
+    position: relative;
+    min-width: 82px;
+    background: rgba(5,10,7,.78);
+    border: 1px solid rgba(255,255,255,.13);
+    border-radius: 13px;
+    padding: 6px 7px;
+    backdrop-filter: blur(7px);
+    box-shadow: 0 5px 15px rgba(0,0,0,.35);
+    transition: .2s ease;
 }
-
-.table:after{
-
-content:"";
-
-position:absolute;
-
-inset:7px;
-
-border:
-2px solid
-rgba(255,255,255,.08);
-
-border-radius:50%;
-
+
+.player.turn .player-box {
+    border: 2px solid #ffd63d;
+    box-shadow:
+        0 0 12px rgba(255,214,61,.55),
+        0 0 25px rgba(255,214,61,.18);
+    animation: turnPulse 1s infinite alternate;
 }
-
-/* =====================================================
-CENTER
-===================================================== */
 
-.center{
-
-position:absolute;
-
-top:50%;
-left:50%;
-
-transform:
-translate(-50%,-50%);
-
-text-align:center;
-
-z-index:3;
-
+@keyframes turnPulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.035); }
 }
-
-.pot{
-
-font-size:20px;
 
-font-weight:900;
-
-text-shadow:
-0 2px 5px
-rgba(0,0,0,.5);
-
+.player.me .player-box {
+    border-color: #3ca8ff;
+    box-shadow: 0 0 13px rgba(60,168,255,.22);
 }
-
-.stage{
 
-font-size:10px;
-
-opacity:.7;
-
-margin-top:4px;
-
-letter-spacing:1px;
-
+.player.folded {
+    opacity: .42;
 }
-
-.community{
 
-display:flex;
-
-justify-content:center;
-
-gap:5px;
-
-margin-top:9px;
-
+.player-name {
+    font-size: 11px;
+    font-weight: 900;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 95px;
+    margin: auto;
 }
-
-/* =====================================================
-CARDS
-===================================================== */
-
-.card{
 
-width:42px;
-height:58px;
-
-background:white;
-
-color:#111;
-
-border-radius:7px;
-
-display:flex;
-
-align-items:center;
-
-justify-content:center;
-
-font-size:20px;
-
-font-weight:900;
-
-box-shadow:
-0 4px 9px
-rgba(0,0,0,.45);
-
-animation:
-cardIn .25s ease;
-
+.player-chips {
+    font-size: 9px;
+    color: #cbd7cf;
+    margin-top: 3px;
 }
 
-.card.red{
-color:#d21f2b;
+.player-cards {
+    display: flex;
+    justify-content: center;
+    margin-top: 4px;
+    height: 30px;
 }
-
-.card.back{
 
-background:
-linear-gradient(
-135deg,
-#162b66,
-#3456a4
-);
-
-border:
-2px solid white;
-
-color:white;
-
+.player-cards .card {
+    width: 23px;
+    height: 32px;
+    font-size: 11px;
 }
-
-@keyframes cardIn{
-
-from{
-transform:
-translateY(-12px)
-scale(.8);
 
-opacity:0;
+.player-cards .card + .card {
+    margin-left: -8px;
 }
 
-to{
-transform:
-translateY(0)
-scale(1);
+/* BOT BADGE */
 
-opacity:1;
+.bot-badge {
+    display: inline-block;
+    margin-left: 3px;
+    font-size: 10px;
 }
-
-}
-
-/* =====================================================
-PLAYERS
-===================================================== */
-
-.player{
-
-position:absolute;
-
-width:105px;
 
-text-align:center;
+/* ================= TIMER ================= */
 
-transform:
-translate(-50%,-50%);
-
-z-index:5;
-
+.turn-timer {
+    position: absolute;
+    left: 50%;
+    bottom: -18px;
+    transform: translateX(-50%);
+    min-width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: #171b18;
+    border: 2px solid #ffd63d;
+    color: #ffd63d;
+    font-size: 11px;
+    font-weight: 900;
+    box-shadow: 0 0 12px rgba(255,214,61,.45);
+    z-index: 30;
 }
-
-.player-box{
-
-background:
-rgba(0,0,0,.58);
-
-border:
-1px solid
-rgba(255,255,255,.12);
 
-border-radius:13px;
-
-padding:6px;
-
-backdrop-filter:blur(6px);
-
-transition:.25s;
-
+.player.turn .turn-timer {
+    display: flex;
 }
-
-.player.turn .player-box{
-
-border:
-2px solid #ffd83d;
 
-box-shadow:
-
-0 0 12px
-rgba(255,216,61,.7),
-
-0 0 30px
-rgba(255,216,61,.25);
-
-transform:scale(1.06);
-
+.turn-timer.danger {
+    border-color: #ff4e4e;
+    color: #ff5b5b;
+    box-shadow: 0 0 14px rgba(255,70,70,.65);
+    animation: dangerPulse .45s infinite alternate;
 }
-
-.player.me .player-box{
 
-border-color:#48a8ff;
-
+@keyframes dangerPulse {
+    from { transform: translateX(-50%) scale(1); }
+    to { transform: translateX(-50%) scale(1.12); }
 }
-
-.player-name{
-
-font-size:11px;
-
-font-weight:900;
-
-white-space:nowrap;
-
-overflow:hidden;
 
-text-overflow:ellipsis;
+/* ================= SEATS ================= */
 
+.seat0 {
+    left: 50%;
+    bottom: -17px;
 }
 
-.player-chips{
-
-font-size:10px;
-
-color:#d2ddd7;
-
-margin-top:2px;
-
+.seat1 {
+    left: 9%;
+    bottom: 10%;
 }
-
-.player-cards{
 
-display:flex;
-
-justify-content:center;
-
-margin-top:4px;
-
+.seat2 {
+    left: 4%;
+    top: 20%;
 }
 
-.player-cards .card + .card{
-
-margin-left:-10px;
-
+.seat3 {
+    left: 50%;
+    top: -17px;
 }
-
-.seat0{
 
-left:50%;
-bottom:-18px;
-
+.seat4 {
+    right: -5%;
+    top: 20%;
 }
-
-.seat1{
 
-left:9%;
-bottom:10%;
-
+.seat5 {
+    right: 0%;
+    bottom: 10%;
 }
 
-.seat2{
+/* ================= MY CARDS ================= */
 
-left:4%;
-top:20%;
-
+.my-cards-area {
+    position: absolute;
+    left: 50%;
+    bottom: 12px;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 25;
 }
-
-.seat3{
 
-left:50%;
-top:-18px;
-
+.my-title {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: rgba(255,255,255,.55);
+    margin-bottom: 5px;
 }
-
-.seat4{
-
-right:-5%;
-top:20%;
 
+.my-cards {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
 }
 
-.seat5{
-
-right:0%;
-bottom:10%;
-
+.my-cards .card {
+    width: 38px;
+    height: 53px;
 }
-
-/* =====================================================
-TIMER
-===================================================== */
-
-.timer{
-
-position:absolute;
-
-top:-31px;
-
-left:50%;
-
-transform:
-translateX(-50%);
-
-width:38px;
-height:38px;
-
-border-radius:50%;
-
-background:
-rgba(0,0,0,.8);
-
-border:
-2px solid #ffd83d;
-
-display:none;
-
-align-items:center;
 
-justify-content:center;
+/* ================= CONTROLS ================= */
 
-font-size:13px;
-
-font-weight:900;
-
-color:#fff;
-
-box-shadow:
-0 0 14px
-rgba(255,216,61,.5);
-
+.controls {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    min-height: 147px;
+    padding: 9px 11px 13px;
+    background: rgba(5,8,6,.97);
+    border-top: 1px solid rgba(255,255,255,.09);
+    z-index: 100;
+    backdrop-filter: blur(12px);
 }
-
-.player.turn .timer{
 
-display:flex;
-
+.actions {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 7px;
 }
-
-.player.turn .timer.danger{
-
-border-color:#ff4e55;
 
-color:#ff7479;
-
-box-shadow:
-0 0 16px
-rgba(255,70,80,.7);
-
+button {
+    border: 0;
+    border-radius: 11px;
+    padding: 12px 4px;
+    color: white;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform .12s, filter .12s, opacity .12s;
 }
-
-/* =====================================================
-MY CARDS
-===================================================== */
 
-.my-cards-area{
-
-position:absolute;
-
-left:50%;
-
-bottom:68px;
-
-transform:
-translateX(-50%);
-
-text-align:center;
-
-z-index:10;
-
+button:active {
+    transform: scale(.95);
 }
-
-.my-title{
-
-font-size:10px;
 
-opacity:.65;
-
-margin-bottom:5px;
-
+button:disabled {
+    opacity: .28;
+    filter: grayscale(.5);
 }
-
-.my-cards{
 
-display:flex;
-
-justify-content:center;
-
-gap:6px;
-
+.btn-fold {
+    background: linear-gradient(135deg,#71363b,#49272b);
 }
-
-/* =====================================================
-CONTROLS
-===================================================== */
-
-.controls{
-
-position:fixed;
-
-left:0;
-right:0;
-bottom:0;
-
-min-height:105px;
-
-padding:
-8px 10px 12px;
-
-background:
-rgba(7,11,9,.97);
-
-border-top:
-1px solid
-rgba(255,255,255,.1);
 
-z-index:30;
-
+.btn-check {
+    background: linear-gradient(135deg,#2c9658,#17633a);
 }
-
-.actions{
-
-display:grid;
-
-grid-template-columns:
-repeat(4,1fr);
-
-gap:6px;
 
+.btn-call {
+    background: linear-gradient(135deg,#337fbe,#225680);
 }
 
-.action-btn{
-
-padding:12px 3px;
-
-border-radius:10px;
-
-font-size:11px;
-
+.btn-raise {
+    background: linear-gradient(135deg,#bd851c,#79540d);
 }
 
-.fold{
-background:#633239;
+.btn-allin {
+    background: linear-gradient(135deg,#c63d45,#79262c);
 }
 
-.check{
-background:#287c49;
+.bottom-row {
+    display: flex;
+    justify-content: center;
+    gap: 7px;
+    margin-top: 8px;
 }
 
-.call{
-background:#276ca9;
+.small-btn {
+    padding: 7px 13px;
+    font-size: 10px;
+    background: #202722;
+    color: #bdc8c0;
 }
 
-.raise{
-background:#9b6b16;
-}
+/* ================= START SCREEN ================= */
 
-.allin{
-background:#a72f36;
+.start-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background:
+        radial-gradient(circle at 50% 35%,#184b30 0%,#09120c 48%,#040604 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 25px;
+    text-align: center;
 }
-
-.bottom-row{
 
-display:flex;
-
-justify-content:center;
-
-gap:7px;
-
-margin-top:7px;
-
+.start-screen.hidden {
+    display: none;
 }
-
-.small-btn{
 
-background:#242b27;
-
-padding:7px 13px;
-
-border-radius:9px;
-
-font-size:10px;
-
+.start-logo {
+    font-size: 43px;
+    letter-spacing: 5px;
+    text-shadow: 0 5px 20px rgba(0,0,0,.5);
 }
-
-/* =====================================================
-TOP TABLE BAR
-===================================================== */
-
-.table-bar{
 
-height:43px;
-
-display:flex;
-
-align-items:center;
-
-justify-content:space-between;
-
-padding:
-0 10px;
-
-background:
-rgba(0,0,0,.25);
-
+.start-title {
+    margin-top: 9px;
+    font-size: 29px;
+    font-weight: 900;
 }
 
-.back-lobby{
-
-background:#252c28;
-
-padding:7px 11px;
-
-border-radius:8px;
-
-font-size:10px;
-
+.start-sub {
+    margin-top: 7px;
+    color: #a9b7ae;
+    font-size: 12px;
 }
-
-.table-label{
 
-font-size:13px;
-
-font-weight:900;
-
+.start-info {
+    display: flex;
+    gap: 8px;
+    margin-top: 18px;
 }
-
-/* =====================================================
-LOADING
-===================================================== */
-
-.loading{
-
-position:fixed;
-
-inset:0;
-
-z-index:300;
-
-background:
-rgba(0,0,0,.65);
-
-display:none;
-
-align-items:center;
-
-justify-content:center;
 
+.info-chip {
+    padding: 7px 10px;
+    border-radius: 20px;
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.08);
+    font-size: 10px;
+    color: #c5d0c8;
 }
 
-.loading.show{
-display:flex;
+.start-button {
+    margin-top: 25px;
+    width: 230px;
+    background: linear-gradient(135deg,#1bb567,#087640);
+    font-size: 17px;
+    padding: 16px;
+    box-shadow: 0 10px 28px rgba(0,0,0,.4);
 }
 
-.loader{
+/* ================= LOADING ================= */
 
-background:#18201b;
-
-padding:18px 25px;
-
-border-radius:14px;
-
-font-weight:800;
-
+.loading {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,.62);
+    backdrop-filter: blur(3px);
+    font-size: 14px;
 }
-
-/* =====================================================
-TOAST
-===================================================== */
-
-.toast{
-
-position:fixed;
-
-top:65px;
-
-left:50%;
-
-transform:
-translateX(-50%);
-
-background:
-rgba(0,0,0,.88);
 
-padding:
-9px 15px;
-
-border-radius:10px;
-
-font-size:11px;
-
-display:none;
-
-z-index:400;
-
+.loading.show {
+    display: flex;
 }
 
-.toast.show{
-display:block;
+.loader {
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(255,255,255,.2);
+    border-top-color: #55e985;
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+    margin-right: 10px;
 }
 
-/* =====================================================
-MOBILE
-===================================================== */
-
-@media(max-width:430px){
-
-.table-area{
-
-height:
-calc(100vh - 200px);
-
-min-height:390px;
-
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
-
-.table{
 
-width:94%;
+/* ================= TOAST ================= */
 
-border-width:10px;
-
+.toast {
+    position: fixed;
+    top: 68px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background: rgba(0,0,0,.88);
+    border: 1px solid rgba(255,255,255,.1);
+    padding: 9px 15px;
+    border-radius: 12px;
+    font-size: 11px;
+    opacity: 0;
+    pointer-events: none;
+    transition: .2s;
+    z-index: 600;
+    white-space: nowrap;
 }
-
-.player{
-
-width:82px;
 
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
 }
 
-.player-name{
-
-font-size:9px;
-
-}
+/* ================= MOBILE ================= */
 
-.player-chips{
+@media(max-width:430px) {
 
-font-size:8px;
+    .table-area {
+        height: calc(100vh - 205px);
+        min-height: 385px;
+    }
 
-}
+    .table {
+        width: 94%;
+        border-width: 10px;
+    }
 
-.card{
+    .player {
+        width: 88px;
+    }
 
-width:35px;
+    .player-name {
+        font-size: 10px;
+    }
 
-height:49px;
+    .player-chips {
+        font-size: 8px;
+    }
 
-font-size:17px;
+    .card {
+        width: 34px;
+        height: 48px;
+        font-size: 16px;
+    }
 
-}
+    .community {
+        gap: 3px;
+    }
 
-.pot{
+    .community .card {
+        width: 32px;
+        height: 45px;
+        font-size: 15px;
+    }
 
-font-size:17px;
+    .pot {
+        font-size: 17px;
+    }
 
-}
+    .center {
+        width: 62%;
+    }
 
-.community{
+    .my-cards-area {
+        bottom: 8px;
+    }
 
-gap:3px;
+    .my-cards .card {
+        width: 34px;
+        height: 48px;
+    }
 
+    .controls {
+        min-height: 145px;
+    }
 }
 
-.community .card{
+@media(max-height:700px) {
 
-width:34px;
+    .table-area {
+        min-height: 350px;
+    }
 
-height:47px;
+    .my-cards-area {
+        bottom: 4px;
+    }
 
-font-size:16px;
+    .controls {
+        min-height: 137px;
+    }
 
+    button {
+        padding: 10px 4px;
+    }
 }
-
-}
-
 </style>
-
 </head>
 
 <body>
 
-<!-- =====================================================
-LOBBY
-===================================================== -->
+<div id="app">
 
-<div id="lobby">
+    <div class="header">
+        <div class="logo">♠ <span>Telegram Poker</span></div>
 
-<div class="lobby-title">
-♠ Poker Lobby
-</div>
+        <div class="status-wrap">
+            <div id="statusDot" class="status-dot"></div>
+            <div id="status" class="status">Connecting...</div>
+        </div>
+    </div>
 
-<div class="lobby-sub">
-Choose a table and join the game
-</div>
+    <div class="table-area">
 
-<div id="tables"
-class="tables">
-</div>
+        <div class="table">
 
-</div>
+            <div id="seat0" class="player seat0"></div>
+            <div id="seat1" class="player seat1"></div>
+            <div id="seat2" class="player seat2"></div>
+            <div id="seat3" class="player seat3"></div>
+            <div id="seat4" class="player seat4"></div>
+            <div id="seat5" class="player seat5"></div>
 
+            <div class="center">
 
-<!-- =====================================================
-GAME
-===================================================== -->
+                <div class="pot-label">CURRENT POT</div>
 
-<div id="gameScreen">
+                <div class="pot">
+                    🪙 <span id="pot">0</span>
+                </div>
 
-<div class="header">
+                <div id="stage" class="stage">
+                    WAITING
+                </div>
 
-<div class="logo">
-♠ Telegram Poker
-</div>
+                <div id="community" class="community"></div>
 
-<div id="status"
-class="status">
-Connecting...
-</div>
+            </div>
 
-</div>
+        </div>
 
+        <div class="my-cards-area">
 
-<div class="table-bar">
+            <div class="my-title">
+                YOUR CARDS
+            </div>
 
-<button
-class="back-lobby"
-onclick="backToLobby()">
+            <div id="myCards" class="my-cards"></div>
 
-← TABLES
+        </div>
 
-</button>
+    </div>
 
-<div id="tableLabel"
-class="table-label">
-TABLE 1
-</div>
+    <div class="controls">
 
-<div>
-🪙 <span id="myChips">1000</span>
-</div>
+        <div class="actions">
 
-</div>
+            <button id="foldBtn"
+                    class="btn-fold"
+                    onclick="doAction('fold')">
+                FOLD
+            </button>
 
+            <button id="checkBtn"
+                    class="btn-check"
+                    onclick="doAction('check')">
+                CHECK
+            </button>
 
-<div class="table-area">
+            <button id="callBtn"
+                    class="btn-call"
+                    onclick="doAction('call')">
+                CALL
+            </button>
 
-<div class="table">
+            <button id="raiseBtn"
+                    class="btn-raise"
+                    onclick="raiseAction()">
+                RAISE
+            </button>
 
-<div
-id="seat0"
-class="player seat0">
-</div>
+        </div>
 
-<div
-id="seat1"
-class="player seat1">
-</div>
+        <div class="bottom-row">
 
-<div
-id="seat2"
-class="player seat2">
-</div>
+            <button id="allinBtn"
+                    class="small-btn"
+                    onclick="doAction('allin')">
+                ALL-IN
+            </button>
 
-<div
-id="seat3"
-class="player seat3">
-</div>
+            <button class="small-btn"
+                    onclick="refreshGame()">
+                REFRESH
+            </button>
 
-<div
-id="seat4"
-class="player seat4">
-</div>
+            <button class="small-btn"
+                    onclick="startGame()">
+                START
+            </button>
 
-<div
-id="seat5"
-class="player seat5">
-</div>
+        </div>
 
-
-<div class="center">
-
-<div class="pot">
-
-🪙 Pot:
-<span id="pot">0</span>
-
-</div>
-
-<div
-id="stage"
-class="stage">
-
-WAITING
-
-</div>
-
-<div
-id="community"
-class="community">
-</div>
-
-</div>
+    </div>
 
 </div>
 
 
-<div class="my-cards-area">
+<!-- ================= START SCREEN ================= -->
 
-<div class="my-title">
-YOUR CARDS
-</div>
+<div id="startScreen" class="start-screen">
 
-<div
-id="myCards"
-class="my-cards">
-</div>
+    <div class="start-logo">
+        ♠ ♥ ♦ ♣
+    </div>
 
-</div>
+    <div class="start-title">
+        Telegram Poker
+    </div>
 
-</div>
+    <div class="start-sub">
+        Texas Hold'em · Play against real players & bots
+    </div>
 
+    <div class="start-info">
 
-<div class="controls">
+        <div class="info-chip">
+            👥 6 Players
+        </div>
 
-<div class="actions">
+        <div class="info-chip">
+            ⏱ 25 sec
+        </div>
 
-<button
-id="foldBtn"
-class="action-btn fold"
-onclick="doAction('fold')">
+        <div class="info-chip">
+            🪙 1000 Chips
+        </div>
 
-FOLD
+    </div>
 
-</button>
-
-<button
-id="checkBtn"
-class="action-btn check"
-onclick="doAction('check')">
-
-CHECK
-
-</button>
-
-<button
-id="callBtn"
-class="action-btn call"
-onclick="doAction('call')">
-
-CALL
-
-</button>
-
-<button
-id="raiseBtn"
-class="action-btn raise"
-onclick="raiseAction()">
-
-RAISE
-
-</button>
+    <button class="start-button"
+            onclick="startGame()">
+        START GAME
+    </button>
 
 </div>
 
 
-<div class="bottom-row">
+<!-- ================= LOADING ================= -->
 
-<button
-class="small-btn allin"
-onclick="doAction('allin')">
+<div id="loading" class="loading">
 
-ALL-IN
+    <div class="loader"></div>
 
-</button>
-
-<button
-class="small-btn"
-onclick="startGame()">
-
-START
-
-</button>
-
-</div>
-
-</div>
+    <div>
+        Connecting...
+    </div>
 
 </div>
 
 
-<!-- =====================================================
-LOADING
-===================================================== -->
-
-<div
-id="loading"
-class="loading">
-
-<div class="loader">
-♠ Connecting...
-</div>
-
-</div>
-
-
-<div
-id="toast"
-class="toast">
-</div>
+<div id="toast" class="toast"></div>
 
 
 <script>
 
-const tg =
-window.Telegram.WebApp;
+/* =========================================================
+   TELEGRAM
+========================================================= */
+
+const tg = window.Telegram.WebApp;
 
 tg.ready();
 tg.expand();
 
+
+/* =========================================================
+   BACKEND
+========================================================= */
+
 const API =
-"https://telegram-poker-backend2.onrender.com";
+    "https://telegram-poker-backend2.onrender.com";
+
+
+/* =========================================================
+   VARIABLES
+========================================================= */
 
 let userId = null;
-
-let userName =
-"Player";
-
-let currentTable = null;
+let userName = "Player";
 
 let gameState = null;
 
 let pollTimer = null;
+let timerTimer = null;
+
+const TURN_SECONDS = 25;
 
 
-/* =====================================================
-USER
-===================================================== */
+/* =========================================================
+   TELEGRAM USER
+========================================================= */
 
-function getTelegramUser(){
+function getTelegramUser() {
 
-const user =
-tg.initDataUnsafe &&
-tg.initDataUnsafe.user;
+    const user =
+        tg.initDataUnsafe &&
+        tg.initDataUnsafe.user;
 
-if(user){
+    if (user) {
 
-userId =
-String(user.id);
+        userId =
+            String(user.id);
 
-userName =
-user.first_name ||
-user.username ||
-"Player";
+        userName =
+            user.first_name ||
+            user.username ||
+            "Player";
 
-return;
+        return;
+    }
 
+    /* Browser fallback */
+
+    let saved =
+        localStorage.getItem(
+            "poker_test_user"
+        );
+
+    if (!saved) {
+
+        saved =
+            "test_" +
+            Math.floor(
+                Math.random() * 1000000
+            );
+
+        localStorage.setItem(
+            "poker_test_user",
+            saved
+        );
+    }
+
+    userId = saved;
+
+    userName = "Test Player";
 }
 
-let saved =
-localStorage.getItem(
-"poker_test_user"
-);
 
-if(!saved){
+/* =========================================================
+   STATUS
+========================================================= */
 
-saved =
-"test_" +
-Math.floor(
-Math.random()*1000000
-);
+function setStatus(
+    text,
+    online = false
+) {
 
-localStorage.setItem(
-"poker_test_user",
-saved
-);
+    const status =
+        document.getElementById(
+            "status"
+        );
 
+    const dot =
+        document.getElementById(
+            "statusDot"
+        );
+
+    status.innerText = text;
+
+    if (online) {
+
+        dot.classList.add(
+            "online"
+        );
+
+        status.style.color =
+            "#8cff9c";
+
+    } else {
+
+        dot.classList.remove(
+            "online"
+        );
+
+        status.style.color =
+            "#ff7777";
+    }
 }
 
-userId = saved;
 
-userName =
-"Test Player";
+/* =========================================================
+   TOAST
+========================================================= */
 
+function showToast(message) {
+
+    const toast =
+        document.getElementById(
+            "toast"
+        );
+
+    toast.innerText =
+        message;
+
+    toast.classList.add(
+        "show"
+    );
+
+    setTimeout(() => {
+
+        toast.classList.remove(
+            "show"
+        );
+
+    }, 2200);
 }
 
 
-/* =====================================================
-API
-===================================================== */
+/* =========================================================
+   LOADING
+========================================================= */
+
+function setLoading(show) {
+
+    const loading =
+        document.getElementById(
+            "loading"
+        );
+
+    if (show)
+        loading.classList.add(
+            "show"
+        );
+    else
+        loading.classList.remove(
+            "show"
+        );
+}
+
+
+/* =========================================================
+   API
+========================================================= */
 
 async function api(
-path,
-options={}
-){
+    path,
+    options = {}
+) {
 
-const response =
-await fetch(
-API + path,
-{
+    const response =
+        await fetch(
+            API + path,
+            {
+                ...options,
 
-...options,
+                headers: {
+                    "Content-Type":
+                        "application/json",
 
-headers:{
-"Content-Type":
-"application/json",
+                    ...(options.headers || {})
+                }
+            }
+        );
 
-...(options.headers || {})
+    let data;
 
-}
+    try {
 
-});
+        data =
+            await response.json();
 
-const data =
-await response.json();
+    } catch {
 
-if(!response.ok){
+        throw new Error(
+            "Invalid server response"
+        );
+    }
 
-throw new Error(
-data.detail ||
-"Server error"
-);
+    if (!response.ok) {
 
-}
+        throw new Error(
+            data.detail ||
+            "Server error"
+        );
+    }
 
-return data;
-
-}
-
-
-/* =====================================================
-TOAST
-===================================================== */
-
-function showToast(
-message
-){
-
-const toast =
-document.getElementById(
-"toast"
-);
-
-toast.innerText =
-message;
-
-toast.classList.add(
-"show"
-);
-
-setTimeout(
-()=>{
-toast.classList.remove(
-"show"
-);
-},
-2200
-);
-
+    return data;
 }
 
 
-/* =====================================================
-LOADING
-===================================================== */
+/* =========================================================
+   JOIN
+========================================================= */
 
-function setLoading(
-show
-){
+async function joinGame() {
 
-document
-.getElementById(
-"loading"
-)
-.classList.toggle(
-"show",
-show
-);
+    try {
 
+        const data =
+            await api(
+                "/join",
+                {
+                    method: "POST",
+
+                    body:
+                        JSON.stringify({
+
+                            user_id:
+                                userId,
+
+                            name:
+                                userName
+
+                        })
+                }
+            );
+
+        setStatus(
+            "Connected",
+            true
+        );
+
+        return data;
+
+    } catch (error) {
+
+        console.error(
+            "JOIN ERROR:",
+            error
+        );
+
+        setStatus(
+            "Offline",
+            false
+        );
+
+        throw error;
+    }
 }
 
 
-/* =====================================================
-LOBBY
-===================================================== */
+/* =========================================================
+   REFRESH
+========================================================= */
 
-async function loadTables(){
+async function refreshGame() {
 
-try{
+    try {
 
-const data =
-await api(
-"/tables"
-);
+        const data =
+            await api(
+                "/game?user_id=" +
+                encodeURIComponent(
+                    userId
+                )
+            );
 
-renderTables(
-data.tables || []
-);
+        gameState = data;
 
-}catch(error){
+        setStatus(
+            "Connected",
+            true
+        );
 
-console.error(error);
+        renderGame(data);
 
-showToast(
-"Cannot load tables"
-);
+    } catch (error) {
 
-}
+        console.error(
+            "REFRESH ERROR:",
+            error
+        );
 
-}
-
-
-function renderTables(
-tables
-){
-
-const container =
-document.getElementById(
-"tables"
-);
-
-container.innerHTML = "";
-
-tables.forEach(
-table=>{
-
-const card =
-document.createElement(
-"div"
-);
-
-card.className =
-"table-card";
-
-let badgeClass =
-"open";
-
-if(
-table.status ===
-"PLAYING"
-)
-badgeClass =
-"playing";
-
-if(
-table.status ===
-"FULL"
-)
-badgeClass =
-"full";
-
-const disabled =
-table.status ===
-"FULL";
-
-card.innerHTML = `
-
-<div class="table-top">
-
-<div class="table-name">
-♠ ${table.name}
-</div>
-
-<div class="badge ${badgeClass}">
-${table.status}
-</div>
-
-</div>
-
-<div class="table-info">
-
-<div class="info-box">
-
-<div class="info-title">
-PLAYERS
-</div>
-
-<div class="info-value">
-${table.players}/${table.max_players}
-</div>
-
-</div>
-
-<div class="info-box">
-
-<div class="info-title">
-BLINDS
-</div>
-
-<div class="info-value">
-${table.small_blind}/${table.big_blind}
-</div>
-
-</div>
-
-<div class="info-box">
-
-<div class="info-title">
-POT
-</div>
-
-<div class="info-value">
-${table.pot}
-</div>
-
-</div>
-
-</div>
-
-<button
-class="join-table"
-${disabled ? "disabled":""}
-onclick="joinTable(${table.id})">
-
-${disabled ? "FULL" : "JOIN TABLE"}
-
-</button>
-
-`;
-
-container.appendChild(
-card
-);
-
-});
-
+        setStatus(
+            "Offline",
+            false
+        );
+    }
 }
 
 
-/* =====================================================
-JOIN TABLE
-===================================================== */
+/* =========================================================
+   START GAME
+========================================================= */
 
-async function joinTable(
-tableId
-){
+async function startGame() {
 
-try{
+    try {
 
-setLoading(true);
+        setLoading(true);
 
-await api(
-"/join",
-{
+        await joinGame();
 
-method:"POST",
+        const data =
+            await api(
+                "/start",
+                {
+                    method: "POST"
+                }
+            );
 
-body:
-JSON.stringify({
+        gameState = data;
 
-user_id:
-userId,
+        renderGame(data);
 
-name:
-userName,
+        document
+            .getElementById(
+                "startScreen"
+            )
+            .classList.add(
+                "hidden"
+            );
 
-table_id:
-tableId
+        showToast(
+            "♠ Game started!"
+        );
 
-})
+    } catch (error) {
 
-});
+        console.error(error);
 
-currentTable =
-tableId;
+        showToast(
+            error.message
+        );
 
-document
-.getElementById(
-"lobby"
-)
-.style.display =
-"none";
+    } finally {
 
-document
-.getElementById(
-"gameScreen"
-)
-.style.display =
-"block";
-
-document
-.getElementById(
-"tableLabel"
-)
-.innerText =
-"TABLE " +
-tableId;
-
-document
-.getElementById(
-"status"
-)
-.innerText =
-"Connected";
-
-await refreshGame();
-
-startPolling();
-
-showToast(
-"Joined Table " +
-tableId
-);
-
-}catch(error){
-
-showToast(
-error.message
-);
-
-}finally{
-
-setLoading(false);
-
-}
-
+        setLoading(false);
+    }
 }
 
 
-/* =====================================================
-BACK TO LOBBY
-===================================================== */
-
-async function backToLobby(){
-
-try{
-
-if(currentTable){
-
-await api(
-"/leave?user_id=" +
-encodeURIComponent(
-userId
-) +
-"&table_id=" +
-currentTable,
-{
-method:"POST"
-}
-);
-
-}
-
-}catch(error){
-
-console.log(
-"Leave:",
-error.message
-);
-
-}
-
-stopPolling();
-
-currentTable =
-null;
-
-gameState =
-null;
-
-document
-.getElementById(
-"gameScreen"
-)
-.style.display =
-"none";
-
-document
-.getElementById(
-"lobby"
-)
-.style.display =
-"block";
-
-loadTables();
-
-}
-
-
-/* =====================================================
-REFRESH GAME
-===================================================== */
-
-async function refreshGame(){
-
-if(!currentTable)
-return;
-
-try{
-
-const data =
-await api(
-"/game?table_id=" +
-currentTable +
-"&user_id=" +
-encodeURIComponent(
-userId
-)
-);
-
-gameState =
-data;
-
-renderGame(
-data
-);
-
-}catch(error){
-
-console.error(
-error
-);
-
-document
-.getElementById(
-"status"
-)
-.innerText =
-"Offline";
-
-}
-
-}
-
-
-/* =====================================================
-START
-===================================================== */
-
-async function startGame(){
-
-if(!currentTable)
-return;
-
-try{
-
-setLoading(true);
-
-const data =
-await api(
-"/start?table_id=" +
-currentTable,
-{
-method:"POST"
-}
-);
-
-gameState =
-data;
-
-renderGame(
-data
-);
-
-showToast(
-"Game started!"
-);
-
-}catch(error){
-
-showToast(
-error.message
-);
-
-}finally{
-
-setLoading(false);
-
-}
-
-}
-
-
-/* =====================================================
-ACTION
-===================================================== */
+/* =========================================================
+   ACTION
+========================================================= */
 
 async function doAction(
-action
-){
+    action
+) {
 
-if(!gameState)
-return;
+    if (!gameState)
+        return;
 
-if(
-gameState.current_player
-!== userId
-){
+    if (!gameState.started) {
 
-showToast(
-"It's not your turn"
-);
+        showToast(
+            "Game is not running"
+        );
 
-return;
+        return;
+    }
 
-}
+    if (
+        gameState.current_player !==
+        userId
+    ) {
 
-try{
+        showToast(
+            "It's not your turn"
+        );
 
-setLoading(true);
+        return;
+    }
 
-const data =
-await api(
-"/action",
-{
+    try {
 
-method:"POST",
+        setLoading(true);
 
-body:
-JSON.stringify({
+        const data =
+            await api(
+                "/action",
+                {
+                    method: "POST",
 
-user_id:
-userId,
+                    body:
+                        JSON.stringify({
 
-action:
-action,
+                            user_id:
+                                userId,
 
-amount:0,
+                            action:
+                                action,
 
-table_id:
-currentTable
+                            amount: 0
 
-})
+                        })
+                }
+            );
 
-});
+        gameState = data;
 
-gameState =
-data;
+        renderGame(data);
 
-renderGame(
-data
-);
+    } catch (error) {
 
-}catch(error){
+        showToast(
+            error.message
+        );
 
-showToast(
-error.message
-);
+    } finally {
 
-}finally{
-
-setLoading(false);
-
-}
-
-}
-
-
-/* =====================================================
-RAISE
-===================================================== */
-
-async function raiseAction(){
-
-if(!gameState)
-return;
-
-if(
-gameState.current_player
-!== userId
-){
-
-showToast(
-"It's not your turn"
-);
-
-return;
-
-}
-
-const current =
-Number(
-gameState.current_bet ||
-20
-);
-
-const amount =
-prompt(
-"Raise to:",
-String(
-current + 20
-)
-);
-
-if(!amount)
-return;
-
-const raiseTo =
-Number(amount);
-
-if(
-!Number.isFinite(
-raiseTo
-)
-){
-
-showToast(
-"Invalid amount"
-);
-
-return;
-
-}
-
-try{
-
-setLoading(true);
-
-const data =
-await api(
-"/action",
-{
-
-method:"POST",
-
-body:
-JSON.stringify({
-
-user_id:
-userId,
-
-action:
-"raise",
-
-amount:
-raiseTo,
-
-table_id:
-currentTable
-
-})
-
-});
-
-gameState =
-data;
-
-renderGame(
-data
-);
-
-}catch(error){
-
-showToast(
-error.message
-);
-
-}finally{
-
-setLoading(false);
-
-}
-
+        setLoading(false);
+    }
 }
 
 
-/* =====================================================
-CARD
-===================================================== */
+/* =========================================================
+   RAISE
+========================================================= */
+
+async function raiseAction() {
+
+    if (!gameState)
+        return;
+
+    if (
+        gameState.current_player !==
+        userId
+    ) {
+
+        showToast(
+            "It's not your turn"
+        );
+
+        return;
+    }
+
+    const current =
+        Number(
+            gameState.current_bet ||
+            20
+        );
+
+    const amount =
+        prompt(
+            "Raise to:",
+            String(
+                current + 20
+            )
+        );
+
+    if (!amount)
+        return;
+
+    const raiseTo =
+        Number(amount);
+
+    if (
+        !Number.isFinite(
+            raiseTo
+        )
+    ) {
+
+        showToast(
+            "Invalid amount"
+        );
+
+        return;
+    }
+
+    try {
+
+        setLoading(true);
+
+        const data =
+            await api(
+                "/action",
+                {
+                    method: "POST",
+
+                    body:
+                        JSON.stringify({
+
+                            user_id:
+                                userId,
+
+                            action:
+                                "raise",
+
+                            amount:
+                                raiseTo
+
+                        })
+                }
+            );
+
+        gameState = data;
+
+        renderGame(data);
+
+    } catch (error) {
+
+        showToast(
+            error.message
+        );
+
+    } finally {
+
+        setLoading(false);
+    }
+}
+
+
+/* =========================================================
+   CARD
+========================================================= */
 
 function createCard(
-card
-){
+    card,
+    small = false
+) {
 
-const div =
-document.createElement(
-"div"
-);
+    const div =
+        document.createElement(
+            "div"
+        );
 
-div.className =
-"card";
+    div.className =
+        "card" +
+        (
+            small
+                ? " small"
+                : ""
+        );
 
-if(
-card &&
-(
-card.includes("♥") ||
-card.includes("♦")
-)
-){
+    if (
+        card &&
+        (
+            card.includes("♥") ||
+            card.includes("♦")
+        )
+    ) {
 
-div.classList.add(
-"red"
-);
+        div.classList.add(
+            "red"
+        );
+    }
 
-}
+    div.innerText =
+        card || "?";
 
-div.innerText =
-card;
-
-return div;
-
-}
-
-
-function createBack(){
-
-const div =
-document.createElement(
-"div"
-);
-
-div.className =
-"card back";
-
-div.innerText =
-"♠";
-
-return div;
-
+    return div;
 }
 
 
-/* =====================================================
-PLAYERS
-===================================================== */
+function createBack(
+    small = false
+) {
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+    div.className =
+        "card back" +
+        (
+            small
+                ? " small"
+                : ""
+        );
+
+    div.innerText = "♠";
+
+    return div;
+}
+
+
+/* =========================================================
+   PLAYER RENDER
+========================================================= */
 
 function renderPlayers(
-players
-){
+    players
+) {
 
-for(
-let seat=0;
-seat<6;
-seat++
-){
+    for (
+        let seat = 0;
+        seat < 6;
+        seat++
+    ) {
 
-const box =
-document.getElementById(
-"seat" + seat
-);
+        const box =
+            document.getElementById(
+                "seat" + seat
+            );
 
-box.innerHTML = "";
+        box.innerHTML = "";
 
-box.classList.remove(
-"me",
-"turn"
-);
+        box.classList.remove(
+            "me",
+            "turn",
+            "folded"
+        );
 
-const player =
-players.find(
-p=>p.seat === seat
-);
+        const player =
+            players.find(
+                p =>
+                    Number(p.seat) ===
+                    seat
+            );
 
-if(!player)
-continue;
+        if (!player)
+            continue;
 
-if(
-player.user_id === userId
-){
+        if (
+            player.user_id ===
+            userId
+        ) {
 
-box.classList.add(
-"me"
-);
+            box.classList.add(
+                "me"
+            );
+        }
 
+        if (player.is_turn) {
+
+            box.classList.add(
+                "turn"
+            );
+        }
+
+        if (player.folded) {
+
+            box.classList.add(
+                "folded"
+            );
+        }
+
+        const container =
+            document.createElement(
+                "div"
+            );
+
+        container.className =
+            "player-box";
+
+        /* NAME */
+
+        const name =
+            document.createElement(
+                "div"
+            );
+
+        name.className =
+            "player-name";
+
+        name.innerText =
+            player.name;
+
+        if (player.is_bot) {
+
+            const bot =
+                document.createElement(
+                    "span"
+                );
+
+            bot.className =
+                "bot-badge";
+
+            bot.innerText = "🤖";
+
+            name.appendChild(
+                bot
+            );
+        }
+
+        /* CHIPS */
+
+        const chips =
+            document.createElement(
+                "div"
+            );
+
+        chips.className =
+            "player-chips";
+
+        chips.innerText =
+            "🪙 " +
+            Number(
+                player.chips || 0
+            ).toLocaleString();
+
+        /* CARDS */
+
+        const cards =
+            document.createElement(
+                "div"
+            );
+
+        cards.className =
+            "player-cards";
+
+        if (
+            player.user_id !==
+            userId &&
+            player.cards_count >= 2
+        ) {
+
+            cards.appendChild(
+                createBack(true)
+            );
+
+            cards.appendChild(
+                createBack(true)
+            );
+        }
+
+        container.appendChild(
+            name
+        );
+
+        container.appendChild(
+            chips
+        );
+
+        container.appendChild(
+            cards
+        );
+
+        /* TIMER */
+
+        if (
+            player.is_turn &&
+            !player.is_bot
+        ) {
+
+            const timer =
+                document.createElement(
+                    "div"
+                );
+
+            timer.className =
+                "turn-timer";
+
+            timer.id =
+                "playerTimer";
+
+            timer.innerText =
+                TURN_SECONDS;
+
+            container.appendChild(
+                timer
+            );
+        }
+
+        box.appendChild(
+            container
+        );
+    }
 }
 
-if(
-player.is_turn
-){
 
-box.classList.add(
-"turn"
-);
-
-}
-
-const container =
-document.createElement(
-"div"
-);
-
-container.className =
-"player-box";
-
-
-/* TIMER */
-
-const timer =
-document.createElement(
-"div"
-);
-
-timer.className =
-"timer";
-
-timer.innerText =
-player.is_turn
-? (
-gameState
-? gameState.turn_remaining
-: 25
-)
-: "";
-
-if(
-player.is_turn &&
-gameState &&
-gameState.turn_remaining <= 5
-){
-
-timer.classList.add(
-"danger"
-);
-
-}
-
-container.appendChild(
-timer
-);
-
-
-/* NAME */
-
-const name =
-document.createElement(
-"div"
-);
-
-name.className =
-"player-name";
-
-name.innerText =
-player.name +
-(
-player.is_bot
-? " 🤖"
-: ""
-);
-
-container.appendChild(
-name
-);
-
-
-/* CHIPS */
-
-const chips =
-document.createElement(
-"div"
-);
-
-chips.className =
-"player-chips";
-
-chips.innerText =
-"🪙 " +
-player.chips;
-
-container.appendChild(
-chips
-);
-
-
-/* CARDS */
-
-const cards =
-document.createElement(
-"div"
-);
-
-cards.className =
-"player-cards";
-
-if(
-player.user_id !== userId &&
-player.cards_count >= 2
-){
-
-cards.appendChild(
-createBack()
-);
-
-cards.appendChild(
-createBack()
-);
-
-}
-
-container.appendChild(
-cards
-);
-
-box.appendChild(
-container
-);
-
-}
-
-}
-
-
-/* =====================================================
-COMMUNITY
-===================================================== */
+/* =========================================================
+   COMMUNITY
+========================================================= */
 
 function renderCommunity(
-cards
-){
+    cards
+) {
 
-const container =
-document.getElementById(
-"community"
-);
+    const container =
+        document.getElementById(
+            "community"
+        );
 
-container.innerHTML = "";
+    container.innerHTML = "";
 
-cards.forEach(
-card=>{
+    cards.forEach(
+        card => {
 
-container.appendChild(
-createCard(card)
-);
+            container.appendChild(
+                createCard(card)
+            );
 
-});
-
+        }
+    );
 }
 
 
-/* =====================================================
-MY CARDS
-===================================================== */
+/* =========================================================
+   MY CARDS
+========================================================= */
 
 function renderMyCards(
-cards
-){
+    cards
+) {
 
-const container =
-document.getElementById(
-"myCards"
-);
+    const container =
+        document.getElementById(
+            "myCards"
+        );
 
-container.innerHTML = "";
+    container.innerHTML = "";
 
-if(!cards.length){
+    if (
+        cards &&
+        cards.length
+    ) {
 
-container.appendChild(
-createBack()
-);
+        cards.forEach(
+            card => {
 
-container.appendChild(
-createBack()
-);
+                container.appendChild(
+                    createCard(card)
+                );
 
-return;
+            }
+        );
 
+    } else {
+
+        container.appendChild(
+            createBack()
+        );
+
+        container.appendChild(
+            createBack()
+        );
+    }
 }
 
-cards.forEach(
-card=>{
 
-container.appendChild(
-createCard(card)
-);
+/* =========================================================
+   TIMER
+========================================================= */
 
-});
+function updateTimer() {
 
+    const timer =
+        document.getElementById(
+            "playerTimer"
+        );
+
+    if (
+        !timer ||
+        !gameState ||
+        !gameState.started ||
+        !gameState.turn_started_at
+    ) {
+        return;
+    }
+
+    const elapsed =
+        Math.floor(
+            Date.now() / 1000 -
+            Number(
+                gameState.turn_started_at
+            )
+        );
+
+    let remaining =
+        TURN_SECONDS -
+        elapsed;
+
+    if (remaining < 0)
+        remaining = 0;
+
+    timer.innerText =
+        remaining;
+
+    if (remaining <= 5) {
+
+        timer.classList.add(
+            "danger"
+        );
+
+    } else {
+
+        timer.classList.remove(
+            "danger"
+        );
+    }
 }
 
 
-/* =====================================================
-GAME RENDER
-===================================================== */
+/* =========================================================
+   TIMER LOOP
+========================================================= */
+
+function startTimerLoop() {
+
+    if (timerTimer)
+        clearInterval(
+            timerTimer
+        );
+
+    timerTimer =
+        setInterval(
+            updateTimer,
+            250
+        );
+}
+
+
+/* =========================================================
+   GAME RENDER
+========================================================= */
 
 function renderGame(
-data
-){
+    data
+) {
 
-if(!data)
-return;
+    if (!data)
+        return;
 
-document
-.getElementById(
-"pot"
-)
-.innerText =
-data.pot || 0;
+    document.getElementById(
+        "pot"
+    ).innerText =
+        Number(
+            data.pot || 0
+        ).toLocaleString();
 
-document
-.getElementById(
-"stage"
-)
-.innerText =
-String(
-data.stage ||
-"waiting"
-)
-.toUpperCase();
+    document.getElementById(
+        "stage"
+    ).innerText =
+        String(
+            data.stage ||
+            "waiting"
+        ).toUpperCase();
 
-renderPlayers(
-data.players || []
-);
+    renderPlayers(
+        data.players || []
+    );
 
-renderCommunity(
-data.community_cards || []
-);
+    renderCommunity(
+        data.community_cards || []
+    );
 
-renderMyCards(
-data.my_cards || []
-);
+    renderMyCards(
+        data.my_cards || []
+    );
 
+    /* BUTTONS */
 
-/* MY CHIPS */
+    const myTurn =
+        data.current_player ===
+        userId;
 
-const me =
-(data.players || [])
-.find(
-p =>
-p.user_id === userId
-);
+    const buttons =
+        document.querySelectorAll(
+            ".actions button"
+        );
 
-if(me){
+    buttons.forEach(
+        button => {
 
-document
-.getElementById(
-"myChips"
-)
-.innerText =
-me.chips;
+            button.disabled =
+                !myTurn ||
+                !data.started;
 
+        }
+    );
+
+    document.getElementById(
+        "allinBtn"
+    ).disabled =
+        !myTurn ||
+        !data.started;
+
+    /* START SCREEN */
+
+    if (data.started) {
+
+        document
+            .getElementById(
+                "startScreen"
+            )
+            .classList.add(
+                "hidden"
+            );
+    }
+
+    /* HAND FINISHED */
+
+    if (
+        !data.started &&
+        data.winner
+    ) {
+
+        showToast(
+            data.message ||
+            "Hand finished"
+        );
+    }
+
+    updateTimer();
 }
 
 
-/* BUTTONS */
+/* =========================================================
+   POLLING
+========================================================= */
 
-const myTurn =
-data.current_player ===
-userId;
+function startPolling() {
 
-document
-.querySelectorAll(
-".actions button"
-)
-.forEach(
-button=>{
+    if (pollTimer)
+        clearInterval(
+            pollTimer
+        );
 
-button.disabled =
-!myTurn ||
-!data.started;
+    /*
+       Polling keeps the table synchronized
+       even when WebSocket is unavailable.
+    */
 
-}
-);
-
-
-/* WINNER */
-
-if(
-!data.started &&
-data.winner &&
-data.message
-){
-
-showToast(
-data.message
-);
-
-}
-
+    pollTimer =
+        setInterval(
+            refreshGame,
+            1000
+        );
 }
 
 
-/* =====================================================
-POLLING
-===================================================== */
+/* =========================================================
+   INIT
+========================================================= */
 
-function startPolling(){
+async function init() {
 
-stopPolling();
+    getTelegramUser();
 
-pollTimer =
-setInterval(
-()=>{
+    startTimerLoop();
 
-refreshGame();
+    try {
 
-},
-1000
-);
+        await joinGame();
 
-}
+        await refreshGame();
 
-function stopPolling(){
+        startPolling();
 
-if(pollTimer){
+    } catch (error) {
 
-clearInterval(
-pollTimer
-);
+        console.error(
+            "INIT ERROR:",
+            error
+        );
 
-pollTimer =
-null;
-
-}
-
+        showToast(
+            "Unable to connect"
+        );
+    }
 }
 
 
-/* =====================================================
-LOBBY POLLING
-===================================================== */
-
-setInterval(
-()=>{
-
-if(
-document
-.getElementById(
-"lobby"
-)
-.style.display !==
-"none"
-){
-
-loadTables();
-
-}
-
-},
-3000
-);
-
-
-/* =====================================================
-INIT
-===================================================== */
-
-async function init(){
-
-getTelegramUser();
-
-await loadTables();
-
-}
+/* =========================================================
+   START
+========================================================= */
 
 init();
 
